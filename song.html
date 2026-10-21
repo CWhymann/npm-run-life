@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>npm run life</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #070a0e;
+        overflow: hidden;
+      }
+      body {
+        font-family: Consolas, "Courier New", monospace;
+        color: #7cfc9a;
+      }
+
+      #rain {
+        position: fixed;
+        inset: 0;
+        opacity: 0.15;
+        pointer-events: none;
+      }
+
+      #scene {
+        position: fixed;
+        inset: 0;
+        perspective: 500px;
+        perspective-origin: 50% 30%;
+        overflow: hidden;
+        z-index: 1;
+      }
+      #scene.shake {
+        animation: shake 0.4s linear;
+      }
+      @keyframes shake {
+        0% {
+          transform: translate(0, 0);
+        }
+        10% {
+          transform: translate(-8px, 4px);
+        }
+        20% {
+          transform: translate(7px, -5px);
+        }
+        30% {
+          transform: translate(-6px, -3px);
+        }
+        40% {
+          transform: translate(5px, 6px);
+        }
+        50% {
+          transform: translate(-7px, 2px);
+        }
+        60% {
+          transform: translate(6px, -6px);
+        }
+        70% {
+          transform: translate(-4px, 3px);
+        }
+        80% {
+          transform: translate(3px, -2px);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      #crawl {
+        position: absolute;
+        left: 50%;
+        top: 100vh;
+        width: min(960px, 92vw);
+        transform-origin: 50% 0;
+        transform: translateX(-50%) rotateX(55deg);
+        text-align: center;
+        font-size: clamp(24px, 3.4vw, 40px);
+        line-height: 1.5;
+        text-shadow: 0 0 10px rgba(124, 252, 154, 0.45);
+        will-change: transform;
+      }
+      #crawl.run {
+        animation: crawl var(--dur) linear forwards;
+      }
+      @keyframes crawl {
+        from {
+          transform: translateX(-50%) rotateX(55deg) translateY(0) translateZ(0);
+        }
+        to {
+          transform: translateX(-50%) rotateX(55deg) translateY(var(--end))
+            translateZ(-300px);
+        }
+      }
+      #crawl p {
+        margin: 0 0 0.4em;
+        min-height: 1.5em;
+      }
+      #crawl .title {
+        font-size: 1.9em;
+        font-weight: bold;
+        margin-bottom: 0.8em;
+      }
+      #crawl .h {
+        font-weight: bold;
+        color: #c8ffd6;
+        text-shadow: 0 0 16px #7cfc9a;
+      }
+      #crawl .dim {
+        color: #4b6b57;
+        text-shadow: none;
+      }
+      #crawl .warn {
+        color: #ffb347;
+      }
+      #crawl .gap {
+        height: 1.4em;
+        min-height: 0;
+      }
+      #crawl .cursor {
+        display: inline-block;
+        animation: blink 0.8s steps(1) infinite;
+        color: #c8ffd6;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .fly {
+        position: absolute;
+        left: 0;
+        white-space: pre;
+        opacity: 0.9;
+        z-index: 0;
+        animation:
+          fly linear forwards,
+          neon 1.3s steps(1) infinite;
+        pointer-events: none;
+        text-shadow:
+          0 0 6px currentColor,
+          0 0 14px currentColor,
+          0 0 28px currentColor;
+      }
+      @keyframes fly {
+        from {
+          transform: translateX(var(--from));
+        }
+        to {
+          transform: translateX(var(--to));
+        }
+      }
+      @keyframes neon {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        8% {
+          opacity: 0.35;
+        }
+        10% {
+          opacity: 1;
+        }
+        55% {
+          opacity: 0.6;
+        }
+        57% {
+          opacity: 1;
+        }
+      }
+      .box {
+        display: inline-block;
+        border: 1px solid currentColor;
+        padding: 4px 10px;
+      }
+      .fly svg {
+        display: block;
+      }
+
+      #flash {
+        position: fixed;
+        inset: 0;
+        background: #7cfc9a;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
+      #flash.on {
+        animation: fl 0.45s ease-out;
+      }
+      @keyframes fl {
+        from {
+          opacity: 0.16;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+
+      #flash.flick {
+        animation: flk 0.22s linear;
+      }
+      @keyframes flk {
+        0% {
+          opacity: 0.25;
+        }
+        40% {
+          opacity: 0;
+        }
+        70% {
+          opacity: 0.12;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      #flash.boom {
+        background: #eafff0;
+        animation: boom 0.4s ease-out;
+      }
+      @keyframes boom {
+        0% {
+          opacity: 0.95;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      #crt-top,
+      #crt-bot {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: #000;
+        z-index: 7;
+        pointer-events: none;
+      }
+      #crt-top {
+        top: 0;
+        transform: translateY(-100%);
+      }
+      #crt-bot {
+        bottom: 0;
+        transform: translateY(100%);
+      }
+      #crt-top.run {
+        animation: panelDown 0.7s cubic-bezier(0.7, 0, 1, 0.5) 0.1s forwards;
+      }
+      #crt-bot.run {
+        animation: panelUp 0.7s cubic-bezier(0.7, 0, 1, 0.5) 0.1s forwards;
+      }
+      @keyframes panelDown {
+        from {
+          transform: translateY(-100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      @keyframes panelUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      #crt-line {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 3px;
+        margin-top: -1.5px;
+        background: #eafff0;
+        box-shadow:
+          0 0 12px #7cfc9a,
+          0 0 40px #7cfc9a;
+        z-index: 8;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #crt-line.run {
+        animation: lineShrink 0.5s ease-in 0.8s forwards;
+      }
+      @keyframes lineShrink {
+        0% {
+          opacity: 1;
+          transform: scaleX(1);
+        }
+        70% {
+          opacity: 1;
+          transform: scaleX(0.02);
+        }
+        100% {
+          opacity: 0;
+          transform: scaleX(0);
+        }
+      }
+
+      #go,
+      #replay {
+        position: fixed;
+        z-index: 9;
+        background: none;
+        border: 1px solid #2c4a38;
+        color: #7cfc9a;
+        padding: 10px 20px;
+        font: inherit;
+        cursor: pointer;
+      }
+      #go {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+      }
+      #replay {
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 14px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="rain"></canvas>
+    <audio id="song" src="Alles Neu.mp3"></audio>
+
+    <div id="scene">
+      <div id="crawl"></div>
+    </div>
+    <div id="flash"></div>
+    <div id="crt-top"></div>
+    <div id="crt-bot"></div>
+    <div id="crt-line"></div>
+
+    <button id="go">Start</button>
+    <button id="replay">noch einmal</button>
+
+    <script>
+      const CRAWL_SECONDS = 187;
+      const CHAR_MS = 45;
+
+      const LINES = [
+        ["npm run life", "title"],
+        ["Building... 47%"],
+        ["Warning: undefined", "warn"],
+        ["Retrying...", "dim"],
+        ["", "gap"],
+
+        ["JS, drei Uhr nachts, Stack Trace im Blick"],
+        ["TS sagt: hier ist null, da ist leer"],
+        ["Ich refactore die Nacht, wie den Code"],
+        ["Jeder Commit ein Atemzug, jeder Push ein Schritt"],
+        ["Die IDE flackert, der Cache ist leer"],
+        ["Und doch – die Loop dreht sich, sie dreht sich weiter"],
+        ["", "gap"],
+
+        ["Doch im Terminal, da glüht was", "dim"],
+        ["Kein Syntax Error, kein Crash", "dim"],
+        ["Nur ein Herz, das compiliert", "dim"],
+        ["Wenn alles andere still steht", "dim"],
+        ["", "gap"],
+
+        ["Wir pushen weiter – kein Conflict bleibt", "h"],
+        ["Wir pushen weiter – der Code wird zum Leben", "h"],
+        ["(Choir: Ooh, ooh, ooh)", "dim"],
+        ["Wir pushen weiter – auch wenn der Server fällt", "h"],
+        ["", "gap"],
+
+        ["Die Schlange, sauber, lesbar – wie ein Brief"],
+        ["from future import morgen"],
+        ["Die API antwortet: 200, okay"],
+        ["Doch dahinter sitzt ein Mensch, der auch mal weint"],
+        ["Recursion, die sich selbst aufruft"],
+        ["Wie ein Gedanke, der nicht loslassen kann"],
+        ["Stack Overflow – nicht der Bug, sondern wir"],
+        ["", "gap"],
+
+        ["Und die Angst, die sitzt im Terminal", "dim"],
+        ["Jeder Release, jeder Hotfix", "dim"],
+        ["Doch die Hoffnung ist kein Dependency", "dim"],
+        ["Die wird nicht deprecated, die bleibt", "dim"],
+        ["", "gap"],
+
+        ["Wir pushen weiter – kein Timeout, kein Fail", "h"],
+        ["Wir pushen weiter – der Loop wird zum Puls", "h"],
+        ["(Choir: Ooh, ooh, ooh)", "dim"],
+        ["Wir pushen weiter – auch wenn die RAM fällt", "h"],
+        ["", "gap"],
+
+        ["Und wenn der Bildschirm schwarz wird"],
+        ["Und der Prozess abgestürzt"],
+        ["Dann tippen wir weiter"],
+        ["Aus dem Nichts"],
+        ["Aus dem Nichts"],
+        ["", "gap"],
+
+        ["Wir pushen weiter – kein Last Commit bleibt", "h"],
+        ["Wir pushen weiter – wir sind der Source", "h"],
+        ["(Choir: Ooh, ooh, ooh)", "dim"],
+        ["Wir pushen weiter – auch wenn die Welt neu kompiliert", "h"],
+        ["", "gap"],
+
+        ["git log", "dim"],
+        ["a1b2c3d: noch nicht fertig", "dim"],
+      ];
+
+      const audio = document.getElementById("song");
+      const crawl = document.getElementById("crawl");
+      const scene = document.getElementById("scene");
+      const flash = document.getElementById("flash");
+      const crtTop = document.getElementById("crt-top");
+      const crtBot = document.getElementById("crt-bot");
+      const crtLine = document.getElementById("crt-line");
+      const replayBtn = document.getElementById("replay");
+
+      LINES.forEach(([, cls = ""]) => {
+        const p = document.createElement("p");
+        p.className = cls === "gap" ? "gap" : cls;
+        crawl.appendChild(p);
+      });
+      const paras = [...crawl.querySelectorAll("p")];
+
+      const chorusStarts = [];
+      LINES.forEach(([, cls], i) => {
+        if (cls === "h" && (i === 0 || LINES[i - 1][1] !== "h"))
+          chorusStarts.push(i);
+      });
+
+      const cursor = document.createElement("span");
+      cursor.className = "cursor";
+      cursor.textContent = "▌";
+
+      let typedStart = [];
+      let shown = [];
+      let startTime = 0;
+      let rafId = null;
+
+      function render(now) {
+        const elapsed = now - startTime;
+        let active = null;
+        LINES.forEach(([text], i) => {
+          if (!text) return;
+          const n = Math.max(
+            0,
+            Math.min(
+              text.length,
+              Math.floor((elapsed - typedStart[i]) / CHAR_MS),
+            ),
+          );
+          if (n !== shown[i]) {
+            shown[i] = n;
+            paras[i].textContent = text.slice(0, n);
+          }
+          if (n > 0 && n < text.length) active = paras[i];
+        });
+        if (active) active.appendChild(cursor);
+        else cursor.remove();
+        rafId = requestAnimationFrame(render);
+      }
+
+      const NEON = ["#00f0ff", "#ff2bd6", "#fff200", "#39ff14", "#ff8c1a"];
+
+      const VIS = [
+        () => `<span class="box">$ git push origin main</span>`,
+        () => `function loop() { return loop(); }`,
+        () => `TypeError: cannot read 'heart' of undefined`,
+        () => `{ } ( ) [ ] &lt;/&gt; =&gt; ;;`,
+        () => `a1b2c3d  ·  e4f5a6b  ·  9d8c7b6`,
+        () =>
+          `<svg width="140" height="50" viewBox="0 0 140 50"><path d="M5 25H70Q90 25 100 10H135M70 25Q90 25 100 40H135" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="5" cy="25" r="5" fill="currentColor"/><circle cx="70" cy="25" r="5" fill="currentColor"/><circle cx="100" cy="10" r="5" fill="currentColor"/><circle cx="100" cy="40" r="5" fill="currentColor"/></svg>`,
+        () =>
+          `<svg width="180" height="50" viewBox="0 0 180 50"><path d="M0 25H50L60 5L72 45L82 25H180" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+        () => `<span class="box">200 OK</span>`,
+        () => `npm ERR! retrying...`,
+      ];
+
+      let visTimer = null;
+      function spawnVis() {
+        const d = document.createElement("div");
+        d.className = "fly";
+        d.innerHTML = VIS[Math.floor(Math.random() * VIS.length)]();
+        d.style.color = NEON[Math.floor(Math.random() * NEON.length)];
+        d.style.top = 5 + Math.random() * 88 + "%";
+        d.style.fontSize = 12 + Math.random() * 16 + "px";
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        d.style.setProperty("--from", dir > 0 ? "-30vw" : "130vw");
+        d.style.setProperty("--to", dir > 0 ? "130vw" : "-30vw");
+        const dur = 18 + Math.random() * 12;
+        d.style.animationDuration = `${dur}s, 1.3s`;
+        scene.appendChild(d);
+        d.addEventListener("animationend", (e) => {
+          if (e.animationName === "fly") d.remove();
+        });
+      }
+
+      function implode() {
+        flash.classList.remove("on", "flick", "boom");
+        void flash.offsetWidth;
+        flash.classList.add("boom");
+
+        scene.classList.remove("shake");
+        void scene.offsetWidth;
+        scene.classList.add("shake");
+
+        [crtTop, crtBot, crtLine].forEach((el) => {
+          el.classList.remove("run");
+          void el.offsetWidth;
+          el.classList.add("run");
+        });
+      }
+
+      let flashTimers = [];
+      function scheduleFlashes(totalMs) {
+        flashTimers.forEach(clearTimeout);
+        flashTimers = [];
+
+        const fire = (cls) => {
+          flash.classList.remove("on", "flick", "boom");
+          void flash.offsetWidth;
+          flash.classList.add(cls);
+        };
+
+        chorusStarts.forEach((lineIdx) => {
+          const frac = lineIdx / LINES.length;
+          const ms = totalMs * frac * 0.92;
+          flashTimers.push(setTimeout(() => fire("on"), ms));
+        });
+
+        let t = 1500 + Math.random() * 1500;
+        while (t < totalMs * 0.95) {
+          flashTimers.push(setTimeout(() => fire("flick"), t));
+          if (Math.random() > 0.5)
+            flashTimers.push(setTimeout(() => fire("flick"), t + 130));
+          t += 1800 + Math.random() * 3200;
+        }
+
+        flashTimers.push(setTimeout(implode, totalMs - 1500));
+      }
+
+      function start() {
+        clearInterval(visTimer);
+        cancelAnimationFrame(rafId);
+        flashTimers.forEach(clearTimeout);
+        scene.querySelectorAll(".fly").forEach((n) => n.remove());
+        replayBtn.style.display = "none";
+
+        [crtTop, crtBot, crtLine].forEach((el) => el.classList.remove("run"));
+        flash.classList.remove("on", "flick", "boom");
+        scene.classList.remove("shake");
+
+        const D = crawl.offsetHeight + innerHeight * 1.2;
+        crawl.style.setProperty("--end", -D + "px");
+        crawl.style.setProperty("--dur", CRAWL_SECONDS + "s");
+
+        crawl.classList.remove("run");
+        void crawl.offsetWidth;
+        crawl.classList.add("run");
+
+        const T = CRAWL_SECONDS * 1000;
+        let prevEnd = 0;
+        typedStart = paras.map((p, i) => {
+          const sched = (T * (p.offsetTop + innerHeight * 0.08)) / D;
+          const s = Math.max(sched, prevEnd);
+          if (LINES[i][0])
+            prevEnd = s + LINES[i][0].length * CHAR_MS + CHAR_MS * 3;
+          return s;
+        });
+        shown = LINES.map(() => -1);
+        paras.forEach((p) => (p.textContent = ""));
+
+        startTime = performance.now();
+        rafId = requestAnimationFrame(render);
+
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+
+        spawnVis();
+        visTimer = setInterval(spawnVis, 1800);
+        scheduleFlashes(T);
+      }
+
+      crawl.addEventListener("animationend", () => {
+        clearInterval(visTimer);
+        replayBtn.style.display = "block";
+      });
+
+      document.getElementById("go").onclick = (e) => {
+        e.currentTarget.remove();
+        start();
+      };
+      replayBtn.onclick = start;
+
+      const canvas = document.getElementById("rain");
+      const ctx = canvas.getContext("2d");
+      let cols, drops;
+      const glyphs = "01{}<>;=()[]";
+      function resize() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        cols = Math.floor(canvas.width / 16);
+        drops = Array.from(
+          { length: cols },
+          () => (Math.random() * canvas.height) / 16,
+        );
+      }
+      addEventListener("resize", resize);
+      resize();
+      function drawRain() {
+        ctx.fillStyle = "rgba(7,10,14,0.12)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#7CFC9A";
+        ctx.font = "16px monospace";
+        for (let i = 0; i < cols; i++) {
+          ctx.fillText(
+            glyphs[Math.floor(Math.random() * glyphs.length)],
+            i * 16,
+            drops[i] * 16,
+          );
+          if (drops[i] * 16 > canvas.height && Math.random() > 0.975)
+            drops[i] = 0;
+          drops[i] += 0.6;
+        }
+        requestAnimationFrame(drawRain);
+      }
+      drawRain();
+    </script>
+  </body>
+</html>
