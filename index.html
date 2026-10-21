@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>npm run life</title>
+    <meta
+      name="description"
+      content="npm run life – ein Song als Terminal-Crawl."
+    />
+    <meta name="theme-color" content="#070a0e" />
+    <meta property="og:title" content="npm run life" />
+    <meta property="og:description" content="Ein Song als Terminal-Crawl." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▌</text></svg>"
+    />
     <style>
       :root {
         color-scheme: dark;
@@ -331,11 +342,37 @@
         padding: 6px 14px;
         display: none;
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        #flash,
+        #flash.on,
+        #flash.flick,
+        #flash.boom,
+        #scene.shake {
+          animation: none !important;
+        }
+        .fly {
+          animation: fly linear forwards !important;
+        }
+      }
+
+      #mute {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 9;
+        background: none;
+        border: 1px solid #2c4a38;
+        color: #7cfc9a;
+        padding: 6px 10px;
+        font: inherit;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <canvas id="rain"></canvas>
-    <audio id="song" src="Alles Neu.mp3"></audio>
+    <audio id="song" src="Alles Neu.mp3" preload="auto"></audio>
 
     <div id="scene">
       <div id="crawl"></div>
@@ -347,9 +384,10 @@
 
     <button id="go">Start</button>
     <button id="replay">noch einmal</button>
+    <button id="mute">🔊</button>
 
     <script>
-      const CRAWL_SECONDS = 187;
+      let CRAWL_SECONDS = 187;
       const CHAR_MS = 45;
 
       const LINES = [
@@ -561,6 +599,7 @@
         flash.classList.remove("on", "flick", "boom");
         scene.classList.remove("shake");
 
+        if (Number.isFinite(audio.duration)) CRAWL_SECONDS = audio.duration;
         const D = crawl.offsetHeight + innerHeight * 1.2;
         crawl.style.setProperty("--end", -D + "px");
         crawl.style.setProperty("--dur", CRAWL_SECONDS + "s");
@@ -602,7 +641,11 @@
         start();
       };
       replayBtn.onclick = start;
-
+      const muteBtn = document.getElementById("mute");
+      muteBtn.onclick = () => {
+        audio.muted = !audio.muted;
+        muteBtn.textContent = audio.muted ? "🔇" : "🔊";
+      };
       const canvas = document.getElementById("rain");
       const ctx = canvas.getContext("2d");
       let cols, drops;
