@@ -400,7 +400,7 @@
 
       #volume-controls {
         position: fixed;
-        top: 16px;
+        bottom: 16px;
         right: 16px;
         z-index: 9;
         display: flex;
@@ -417,8 +417,31 @@
         border: none;
         color: #7cfc9a;
         padding: 0;
-        font: inherit;
+        line-height: 0;
         cursor: pointer;
+      }
+      #mute svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      #mute .wave {
+        transition: opacity 0.15s;
+      }
+      #mute.is-muted .wave {
+        opacity: 0;
+      }
+      #mute .x {
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      #mute.is-muted .x {
+        opacity: 1;
       }
       #volume {
         width: 100px;
@@ -444,7 +467,14 @@
     <button id="replay">noch einmal</button>
 
     <div id="volume-controls">
-      <button id="mute" aria-label="Stummschalten">🔊</button>
+      <button id="mute" aria-label="Stummschalten">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" stroke="none" />
+          <path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7" />
+          <path class="wave" d="M18 6a9 9 0 0 1 0 12" />
+          <path class="x" d="M15 9l5 5M20 9l-5 5" />
+        </svg>
+      </button>
       <input
         id="volume"
         type="range"
@@ -796,17 +826,12 @@
       const volumeBar = document.getElementById("volume");
       muteBtn.onclick = () => {
         audio.muted = !audio.muted;
-        muteBtn.textContent = audio.muted ? "🔇" : "🔊";
+        muteBtn.classList.toggle("is-muted", audio.muted);
       };
       volumeBar.addEventListener("input", () => {
         audio.volume = Number(volumeBar.value);
-        if (audio.volume === 0) {
-          audio.muted = true;
-          muteBtn.textContent = "🔇";
-        } else {
-          audio.muted = false;
-          muteBtn.textContent = "🔊";
-        }
+        audio.muted = audio.volume === 0;
+        muteBtn.classList.toggle("is-muted", audio.muted);
       });
       const canvas = document.getElementById("rain");
       const ctx = canvas.getContext("2d");
